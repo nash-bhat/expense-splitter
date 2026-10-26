@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from app import splitting
@@ -27,7 +28,12 @@ def get_group(group_id: int, session: Session = Depends(get_session)) -> Group:
     return group
 
 
-@app.post("/groups", response_model=GroupOut, status_code=status.HTTP_201_CREATED)
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    return RedirectResponse("/docs")
+
+
+@app.post("/groups",response_model=GroupOut, status_code=status.HTTP_201_CREATED)
 def create_group(body: GroupIn, session: Session = Depends(get_session)) -> Group:
     group = Group(name=body.name, members=[Member(name=n.strip()) for n in body.members])
     session.add(group)
